@@ -46,7 +46,7 @@
       color: #2d2d2d;
       font-weight: 700;
       margin-top: 30px;
-      font-size: 28px; /* reverted to original size */
+      font-size: 28px; 
       text-align: center;
     }
 
@@ -105,14 +105,12 @@
 </head>
 <body>
   <div class="left-side">
-    <img src="https://i.pinimg.com/736x/01/8a/d1/018ad1b006ad3bafc67cf5de776f0b64.jpg" alt="Logo" class="logo">
+    <img src="{{ url_for('static', filename='images/download.png') }}" alt="Logo" class="logo">
     <h1>Welcome to NurseryMate</h1>
 
     <div class="button-wrapper">
       <a href="{{ url_for('form') }}"><button class="button">Start plant recommendation process</button></a>
       <a href="{{ url_for('login') }}"><button class="button">Admin login</button></a>
-
-
     </div>
   </div>
 

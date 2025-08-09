@@ -1,2 +1,356 @@
-<h2>Plant Recommendation Form</h2>
-<p>Still need to code...</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Plant Survey Form - NurseryMate</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300..800&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      display: flex;
+      height: 100vh;
+      font-family: 'Montserrat', sans-serif;
+      background-color: #f7f6f3;
+    }
+
+    /* Side Navbar */
+    .side-navbar {
+      width: 250px;
+      background-color: #ffffff;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-right: 1px solid #d9d9d9;
+    }
+
+    .side-navbar .logo {
+      width: 24px;
+      height: 24px;
+      margin: 0;
+      margin-right: 8px;
+    }
+
+    .side-navbar h2 {
+      font-weight: 700;
+      font-size: 18px;
+      color: #8B8C89;
+      margin: 0;
+      line-height: 24px;
+      text-align: left;
+    }
+    .navbar-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .navbar-divider {
+      border: none;
+      border-top: 1px solid #d9d9d9;
+      margin: 0 0 16px 0;
+      width: 100%;
+    }
+
+    .nav-links {
+      width: 100%;
+    }
+
+    .nav-links a {
+      display: block;
+      text-decoration: none;
+      color: #8B8C89;
+      font-family: 'Open Sans', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px 20px;
+      margin-bottom: 10px;
+      border-left: 4px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .nav-links a.active,
+    .nav-links a:hover {
+      color: #C2E4CF;
+      font-weight: bold;
+      border-left: 4px solid transparent;
+      background-color: transparent;
+    }
+
+    /* Main content */
+    .main-content {
+      flex-grow: 1;
+      padding: 40px 60px;
+      overflow-y: auto;
+    }
+
+    h1 {
+      color: #A3B18A;
+      font-weight: 700;
+      font-size: 22px;
+      margin-bottom: 30px;
+    }
+
+    form {
+      max-width: 700px;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+      font-family: 'Open Sans', sans-serif;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: #2d2d2d;
+    }
+
+    .form-select {
+      background-color: #F7F6F3;
+      padding: 6px 8px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      width: 100%;
+      max-width: 600px;
+      border-radius: 0;
+      font-family: 'Open Sans', sans-serif;
+    }
+
+    .form-select:focus {
+      outline: none;
+      border-color: #6b8e5a;
+      box-shadow: 0 0 0 2px rgba(107, 142, 90, 0.2);
+    }
+
+    .submit-btn {
+      margin-top: 30px;
+      background-color: #A3B18A;
+      border: none;
+      padding: 12px 30px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #2D2D2D;
+      cursor: pointer;
+      border-radius: 4px;
+      font-family: 'Open Sans', sans-serif;
+      transition: background-color 0.3s ease;
+    }
+
+    .submit-btn:hover {
+      background-color: #8a9d6f;
+    }
+
+    .submit-btn:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+
+    .error-message {
+      color: #d32f2f;
+      font-size: 14px;
+      margin-top: 5px;
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      .side-navbar {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-around;
+        padding: 20px 10px;
+        border-right: none;
+        border-bottom: 1px solid #d9d9d9;
+      }
+
+      .side-navbar .logo {
+        display: none;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 20px;
+      }
+
+      .nav-links a {
+        border-left: none;
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+
+      .main-content {
+        padding: 20px 15px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="side-navbar">
+    <div class="navbar-header">
+      <img src="{{ url_for('static', filename='images/download.png') }}" alt="NurseryMate Logo" class="logo" />
+      <h2>NurseryMate</h2>
+    </div>
+    <hr class="navbar-divider" />
+    <div class="nav-links">
+      <a href="{{ url_for('form') }}" class="active" aria-current="page">Survey form</a>
+      <a href="{{ url_for('results') }}">My results</a>
+      <a href="{{ url_for('login') }}">Admin login</a>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <h1>Complete the survey questions below to find your perfect plant!</h1>
+    
+    <form method="POST" action="{{ url_for('form') }}" novalidate>
+      {% if error %}
+        <div style="color: #d32f2f; background-color: #ffebee; padding: 10px; border-radius: 4px; margin-bottom: 20px;">
+          {{ error }}
+        </div>
+      {% endif %}
+
+      <div class="form-group">
+        <label for="soil_type">What is your soil type?</label>
+        <select name="soil_type" id="soil_type" class="form-select" required>
+          <option value="" disabled hidden selected>Select soil type</option>
+          <option value="Dry, sandy or loamy">Dry, sandy or loamy</option>
+          <option value="Heavy, clay or waterlogged">Heavy, clay or waterlogged</option>
+          <option value="Moist, well-drained">Moist, well-drained</option>
+          <option value="Saline or coastal">Saline or coastal</option>
+        </select>
+        <div class="error-message" id="soil_type_error">Please select a soil type</div>
+      </div>
+
+      <div class="form-group">
+        <label for="sunlight">How much sun does the planting area get?</label>
+        <select name="sunlight" id="sunlight" class="form-select" required>
+          <option value="" disabled hidden selected>Select sunlight level</option>
+          <option value="Full sun (most of the day)">Full sun (most of the day)</option>
+          <option value="Partial shade (some sun, some shade)">Partial shade (some sun, some shade)</option>
+          <option value="Full shade (very little direct sun)">Full shade (very little direct sun)</option>
+        </select>
+        <div class="error-message" id="sunlight_error">Please select sunlight conditions</div>
+      </div>
+
+      <div class="form-group">
+        <label for="water_availability">What level of water availability do you expect?</label>
+        <select name="water_availability" id="water_availability" class="form-select" required>
+          <option value="" disabled hidden selected>Select water level</option>
+          <option value="Dry or drought-prone">Dry or drought-prone</option>
+          <option value="Moderate moisture (well-watered)">Moderate moisture (well-watered)</option>
+          <option value="Wet or swampy">Wet or swampy</option>
+        </select>
+        <div class="error-message" id="water_availability_error">Please select water availability</div>
+      </div>
+
+      <div class="form-group">
+        <label for="salt_wind_tolerance">Do you need salt or wind tolerance?</label>
+        <select name="salt_wind_tolerance" id="salt_wind_tolerance" class="form-select" required>
+          <option value="" disabled hidden selected>Select tolerance level</option>
+          <option value="Yes — coastal or exposed site">Yes — coastal or exposed site</option>
+          <option value="No — sheltered inland site">No — sheltered inland site</option>
+        </select>
+        <div class="error-message" id="salt_wind_tolerance_error">Please select salt/wind tolerance</div>
+      </div>
+
+      <div class="form-group">
+        <label for="plant_type">Preferred plant type or form?</label>
+        <select name="plant_type" id="plant_type" class="form-select" required>
+          <option value="" disabled hidden selected>Select plant type</option>
+          <option value="Groundcover or creeping">Groundcover or creeping</option>
+          <option value="Tufting or grass-like">Tufting or grass-like</option>
+          <option value="Small herb or dainty flower">Small herb or dainty flower</option>
+          <option value="Shrub or tree">Shrub or tree</option>
+        </select>
+        <div class="error-message" id="plant_type_error">Please select plant type</div>
+      </div>
+
+      <div class="form-group">
+        <label for="ecological_function">Desired ecological function?</label>
+        <select name="ecological_function" id="ecological_function" class="form-select" required>
+          <option value="" disabled hidden selected>Select function</option>
+          <option value="Attract birds and butterflies">Attract birds and butterflies</option>
+          <option value="Provide food (e.g., berries)">Provide food (e.g., berries)</option>
+          <option value="Structural/visual interest">Structural/visual interest</option>
+          <option value="Low-maintenance only">Low-maintenance only</option>
+        </select>
+        <div class="error-message" id="ecological_function_error">Please select ecological function</div>
+      </div>
+
+      <div class="form-group">
+        <label for="maintenance_level">How much maintenance are you willing to do?</label>
+        <select name="maintenance_level" id="maintenance_level" class="form-select" required>
+          <option value="" disabled hidden selected>Select maintenance level</option>
+          <option value="Low (minimal pruning, drought-tolerant)">Low (minimal pruning, drought-tolerant)</option>
+          <option value="Medium (occasional watering and pruning)">Medium (occasional watering and pruning)</option>
+          <option value="High (regular watering, fertilising, pruning)">High (regular watering, fertilising, pruning)</option>
+        </select>
+        <div class="error-message" id="maintenance_level_error">Please select maintenance level</div>
+      </div>
+
+      <div class="form-group">
+        <label for="planting_space">What is your available planting space?</label>
+        <select name="planting_space" id="planting_space" class="form-select" required>
+          <option value="" disabled hidden selected>Select space size</option>
+          <option value="Small pot / container">Small pot / container</option>
+          <option value="Small garden bed (<1m spread)">Small garden bed (<1m spread)</option>
+          <option value="Medium garden area (1–3m spread)">Medium garden area (1–3m spread)</option>
+          <option value="Large area (>3m spread)">Large area (>3m spread)</option>
+        </select>
+        <div class="error-message" id="planting_space_error">Please select planting space</div>
+      </div>
+
+      <button type="submit" class="submit-btn">Find my plant</button>
+    </form>
+  </main>
+
+  <script>
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+      let isValid = true;
+      const selects = document.querySelectorAll('select[required]');
+      
+      selects.forEach(select => {
+        const errorDiv = document.getElementById(select.id + '_error');
+        if (select.value === '') {
+          errorDiv.style.display = 'block';
+          isValid = false;
+        } else {
+          errorDiv.style.display = 'none';
+        }
+      });
+
+      if (!isValid) {
+        e.preventDefault();
+      }
+    });
+
+    // Clear error messages on change
+    document.querySelectorAll('select').forEach(select => {
+      select.addEventListener('change', function() {
+        const errorDiv = document.getElementById(this.id + '_error');
+        if (errorDiv) {
+          errorDiv.style.display = 'none';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
