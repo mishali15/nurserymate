@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Plant Survey Results - NurseryMate</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300..800&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      display: flex;
+      height: 100vh;
+      font-family: 'Montserrat', sans-serif;
+      background-color: #f7f6f3;
+    }
+
+    /* Side Navbar */
+    .side-navbar {
+      width: 250px;
+      background-color: #ffffff;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-right: 1px solid #d9d9d9;
+    }
+
+    .side-navbar .logo {
+      width: 24px;
+      height: 24px;
+      margin: 0;
+      margin-right: 8px;
+    }
+
+    .side-navbar h2 {
+      font-weight: 700;
+      font-size: 18px;
+      color: #8B8C89;
+      margin: 0;
+      line-height: 24px;
+      text-align: left;
+    }
+    .navbar-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .navbar-divider {
+      border: none;
+      border-top: 1px solid #d9d9d9;
+      margin: 0 0 16px 0;
+      width: 100%;
+    }
+
+    .nav-links {
+      width: 100%;
+    }
+
+    .nav-links a {
+      display: block;
+      text-decoration: none;
+      color: #8B8C89;
+      font-family: 'Open Sans', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px 20px;
+      margin-bottom: 10px;
+      border-left: 4px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .nav-links a.active,
+    .nav-links a:hover {
+      color: #C2E4CF;
+      font-weight: bold;
+      border-left: 4px solid transparent;
+      background-color: transparent;
+    }
+
+    /* Main content */
+    .main-content {
+      flex-grow: 1;
+      padding: 40px 60px;
+      overflow-y: auto;
+    }
+
+    h1 {
+      color: #A3B18A;
+      font-weight: 700;
+      font-size: 22px;
+      margin-bottom: 30px;
+    }
+
+    .results-list {
+      max-width: 700px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .result-item {
+      display: flex;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      align-items: center;
+    }
+
+    .result-image {
+      width: 150px;
+      height: 100px;
+      background-color: #e0e0e0;
+      border-radius: 4px;
+      flex-shrink: 0;
+      background-size: cover;
+      background-position: center;
+      margin-right: 20px;
+    }
+
+    .result-info {
+      flex-grow: 1;
+      color: #a3c9a8;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .view-details {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 12px;
+      color: #a3c9a8;
+      text-decoration: none;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .view-details:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      .side-navbar {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-around;
+        padding: 20px 10px;
+        border-right: none;
+        border-bottom: 1px solid #d9d9d9;
+      }
+
+      .side-navbar .logo {
+        display: none;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 20px;
+      }
+
+      .nav-links a {
+        border-left: none;
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+
+      .main-content {
+        padding: 20px 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="side-navbar">
+    <div class="navbar-header">
+      <img src="{{ url_for('static', filename='images/download.png') }}" alt="NurseryMate Logo" class="logo" />
+      <h2>NurseryMate</h2>
+    </div>
+    <hr class="navbar-divider" />
+    <div class="nav-links">
+      <a href="{{ url_for('form') }}">Survey form</a>
+      <a href="{{ url_for('results') }}" class="active" aria-current="page">My results</a>
+      <a href="{{ url_for('login') }}">Admin login</a>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <h1>Here are the plants that best match your preferences:</h1>
+    <div class="results-list">
+      {% if plants %}
+        {% for plant in plants %}
+          <div class="result-item">
+            <div class="result-info">{{ plant.scientific_name }}</div>
+            <a href="#" class="view-details">view details →</a>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>No plants match your preferences. Please try different options.</p>
+      {% endif %}
+    </div>
+  </main>
+</body>
+</html>
