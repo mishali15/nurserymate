@@ -13,6 +13,7 @@ def create_and_seed_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             scientific_name TEXT NOT NULL,
             common_name TEXT,
+            common_name TEXT,
             flowering_time TEXT,
             height TEXT,
             growing_requirements TEXT
@@ -101,4 +102,5 @@ def create_and_seed_db():
 
 if __name__ == "__main__":
     create_and_seed_db()
+    print("Database created and seeded successfully.")
     print("Database created and seeded successfully.")

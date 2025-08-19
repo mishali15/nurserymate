@@ -1,6 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 import sqlite3
-
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
@@ -8,21 +7,43 @@ app.secret_key = 'your_secret_key_here'
 validUsername = "admin"
 validPassword = "password123"
 
+def get_all_plants():
+    conn = sqlite3.connect('plants.db')
+    c = conn.cursor()
+    c.execute("SELECT id, scientific_name, common_name, flowering_time, height, growing_requirements FROM plants")
+    plants = c.fetchall()
+    conn.close()
+    return plants
+
+def add_plant(scientific_name, common_name, flowering_time, height, growing_requirements):
+    conn = sqlite3.connect('plants.db')
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO plants (scientific_name, common_name, flowering_time, height, growing_requirements) VALUES (?, ?, ?, ?, ?)",
+        (scientific_name, common_name, flowering_time, height, growing_requirements)
+    )
+    conn.commit()
+    conn.close()
+
+def remove_plant(plant_id):
+    conn = sqlite3.connect('plants.db')
+    c = conn.cursor()
+    c.execute("DELETE FROM plants WHERE id = ?", (plant_id,))
+    conn.commit()
+    conn.close()
+
 def query_plants(form_data):
     conn = sqlite3.connect('plants.db')
     c = conn.cursor()
-
     query = "SELECT scientific_name, common_name, flowering_time, height, growing_requirements FROM plants"
     c.execute(query)
     plants = c.fetchall()
-
     def matches(plant):
         scientific_name, common_name, flowering_time, height, growing_requirements = plant
         gr = growing_requirements.lower()
-
         match_count = 0
-        total_criteria = 8  # Number of criteria to match
-
+        total_criteria = 8
+        # ...matching logic unchanged...
         # Soil type matching
         soil_type = form_data.get("soil_type", "").lower()
         if soil_type:
@@ -34,8 +55,6 @@ def query_plants(form_data):
                 match_count += 1
             elif soil_type == "saline or coastal" and any(x in gr for x in ["saline", "coastal", "salt"]):
                 match_count += 1
-
-        # Sunlight matching
         sunlight = form_data.get("sunlight", "").lower()
         if sunlight:
             if sunlight == "full sun (most of the day)" and "full sun" in gr:
@@ -44,8 +63,6 @@ def query_plants(form_data):
                 match_count += 1
             elif sunlight == "full shade (very little direct sun)" and any(x in gr for x in ["full shade", "shade"]):
                 match_count += 1
-
-        # Water availability matching
         water = form_data.get("water_availability", "").lower()
         if water:
             if water == "dry or drought-prone" and any(x in gr for x in ["dry", "drought"]):
@@ -54,16 +71,12 @@ def query_plants(form_data):
                 match_count += 1
             elif water == "wet or swampy" and any(x in gr for x in ["wet", "swamp", "waterlogged", "aquatic"]):
                 match_count += 1
-
-        # Salt/wind tolerance matching
         salt = form_data.get("salt_wind_tolerance", "").lower()
         if salt:
             if salt == "yes — coastal or exposed site" and any(x in gr for x in ["salt", "coastal", "wind"]):
                 match_count += 1
             elif salt == "no — sheltered inland site" and not any(x in gr for x in ["salt", "coastal", "wind"]):
                 match_count += 1
-
-        # Plant type matching
         plant_type = form_data.get("plant_type", "").lower()
         if plant_type:
             if plant_type == "groundcover or creeping" and any(x in gr for x in ["groundcover", "creeping", "mat-forming", "low maintenance groundcover"]):
@@ -74,8 +87,6 @@ def query_plants(form_data):
                 match_count += 1
             elif plant_type == "shrub or tree" and any(x in gr for x in ["shrub", "tree", "wattle", "banksia", "acacia"]):
                 match_count += 1
-
-        # Ecological function matching (basic)
         eco_func = form_data.get("ecological_function", "").lower()
         if eco_func:
             if eco_func == "attract birds and butterflies" and any(x in gr for x in ["attract", "birds", "butterflies", "wildlife"]):
@@ -86,8 +97,6 @@ def query_plants(form_data):
                 match_count += 1
             elif eco_func == "low-maintenance only" and any(x in gr for x in ["low maintenance", "low-maintenance", "drought-tolerant", "drought tolerant"]):
                 match_count += 1
-
-        # Maintenance level matching
         maintenance = form_data.get("maintenance_level", "").lower()
         if maintenance:
             if maintenance == "low (minimal pruning, drought-tolerant)" and any(x in gr for x in ["low maintenance", "drought-tolerant", "minimal pruning"]):
@@ -96,8 +105,6 @@ def query_plants(form_data):
                 match_count += 1
             elif maintenance == "high (regular watering, fertilising, pruning)" and any(x in gr for x in ["regular watering", "fertilising", "pruning"]):
                 match_count += 1
-
-        # Planting space matching (basic)
         space = form_data.get("planting_space", "").lower()
         if space:
             if space == "small pot / container" and any(x in gr for x in ["small", "container", "pot"]):
@@ -108,9 +115,7 @@ def query_plants(form_data):
                 match_count += 1
             elif space == "large area (>3m spread)" and any(x in gr for x in ["large", ">3m", "3m"]):
                 match_count += 1
-
         return match_count >= 3
-
     filtered_plants = [ 
         {
             "scientific_name": p[0],
@@ -121,7 +126,6 @@ def query_plants(form_data):
         }
         for p in plants if matches(p)
     ]
-
     conn.close()
     return filtered_plants
 
@@ -132,7 +136,6 @@ def index():
 @app.route("/form", methods=["GET", "POST"])
 def form():
     if request.method == "POST":
-        # Collect form data
         form_data = {
             "soil_type": request.form.get("soil_type"),
             "sunlight": request.form.get("sunlight"),
@@ -143,14 +146,11 @@ def form():
             "maintenance_level": request.form.get("maintenance_level"),
             "planting_space": request.form.get("planting_space"),
         }
-        print("Received form data:", form_data)
-        # Redirect to results page with the collected data
         return redirect(url_for("results", **form_data))
     return render_template("form.html")
 
 @app.route("/results")
 def results():
-    # Get form data from query parameters
     form_data = {
         "soil_type": request.args.get("soil_type"),
         "sunlight": request.args.get("sunlight"),
@@ -170,17 +170,55 @@ def login():
     if request.method == "POST":
         username = request.form.get("username", "")
         password = request.form.get("password", "")
-        
         if username == validUsername and password == validPassword:
+            session['logged_in'] = True
             return redirect(url_for("adminDashboard"))
         else:
             error = "Invalid login credentials. Please try again."
-    
     return render_template("login.html", error=error)
 
-@app.route("/adminDashboard")
+@app.route("/adminDashboard", methods=["GET", "POST"])
 def adminDashboard():
-    return "<h2>Admin Dashboard - Plant Management System</h2><p>Under Construction: This area will contain tools for managing plant recommendations and system data.</p>"
+    if not session.get('logged_in'):
+        flash('Please log in to access the dashboard.')
+        return redirect(url_for('login'))
+
+    if request.method == "POST":
+        if "remove_id" in request.form:
+            plant_id = request.form.get("remove_id")
+            remove_plant(plant_id)
+        elif "add_plant" in request.form:
+            scientific_name = request.form.get("scientific_name")
+            common_name = request.form.get("common_name")
+            flowering_time = request.form.get("flowering_time")
+            height = request.form.get("height")
+            growing_requirements = request.form.get("growing_requirements")
+            add_plant(scientific_name, common_name, flowering_time, height, growing_requirements)
+
+    plants = get_all_plants()
+    return render_template("dashboard.html", plants=plants)
+
+@app.route("/logout")
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('login'))
+
+def init_db():
+    conn = sqlite3.connect('plants.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS plants (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            scientific_name TEXT NOT NULL,
+            common_name TEXT NOT NULL,
+            flowering_time TEXT,
+            height TEXT,
+            growing_requirements TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
 
 if __name__ == "__main__":
+    init_db()
     app.run(debug=True)

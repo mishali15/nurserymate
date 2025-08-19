@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Admin Dashboard</title>
+</head>
+<body>
+    <header>
+        <h1>Admin dashboard</h1>
+        <h2>NurseryMate</h2>
+    </header>
+    <main>
+        <section>
+            <h3>Remove plants:</h3>
+            <form method="POST">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Plant name</th>
+                            <th>Remove</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for plant in plants %}
+                        <tr>
+                            <td>{{ plant[1] }}</td>
+                            <td>
+                                <input type="radio" name="remove_id" value="{{ plant[0] }}">
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <button type="submit">Remove</button>
+            </form>
+        </section>
+        <section>
+            <h3>Add plants:</h3>
+            <form method="POST">
+                <label for="scientific_name">Plant name:</label>
+                <input type="text" id="scientific_name" name="scientific_name" required>
+                
+                <label for="light">Light:</label>
+                <input type="text" id="light" name="light" required>
+                
+                <label for="requirements">Requirements:</label>
+                <input type="text" id="requirements" name="growing_requirements" required>
+                
+                <label for="flowering_time">Flowering time:</label>
+                <input type="text" id="flowering_time" name="flowering_time" required>
+                
+                <button type="submit" name="add_plant">Add new plant</button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>
