@@ -250,14 +250,14 @@
       </div>
 
       <div class="form-group">
-        <label for="water_availability">What level of water availability do you expect?</label>
-        <select name="water_availability" id="water_availability" class="form-select" required>
+        <label for="water_level">What level of water availability do you expect?</label>
+        <select name="water_level" id="water_level" class="form-select" required>
           <option value="" disabled hidden selected>Select water level</option>
           <option value="Dry or drought-prone">Dry or drought-prone</option>
           <option value="Moderate moisture (well-watered)">Moderate moisture (well-watered)</option>
           <option value="Wet or swampy">Wet or swampy</option>
         </select>
-        <div class="error-message" id="water_availability_error">Please select water availability</div>
+        <div class="error-message" id="water_level_error">Please select water availability</div>
       </div>
 
       <div class="form-group">
@@ -271,15 +271,15 @@
       </div>
 
       <div class="form-group">
-        <label for="plant_type">Preferred plant type or form?</label>
-        <select name="plant_type" id="plant_type" class="form-select" required>
+        <label for="type">Preferred plant type or form?</label>
+        <select name="type" id="type" class="form-select" required>
           <option value="" disabled hidden selected>Select plant type</option>
           <option value="Groundcover or creeping">Groundcover or creeping</option>
           <option value="Tufting or grass-like">Tufting or grass-like</option>
           <option value="Small herb or dainty flower">Small herb or dainty flower</option>
           <option value="Shrub or tree">Shrub or tree</option>
         </select>
-        <div class="error-message" id="plant_type_error">Please select plant type</div>
+        <div class="error-message" id="type_error">Please select plant type</div>
       </div>
 
       <div class="form-group">
@@ -295,14 +295,16 @@
       </div>
 
       <div class="form-group">
-        <label for="maintenance_level">How much maintenance are you willing to do?</label>
-        <select name="maintenance_level" id="maintenance_level" class="form-select" required>
-          <option value="" disabled hidden selected>Select maintenance level</option>
-          <option value="Low (minimal pruning, drought-tolerant)">Low (minimal pruning, drought-tolerant)</option>
-          <option value="Medium (occasional watering and pruning)">Medium (occasional watering and pruning)</option>
-          <option value="High (regular watering, fertilising, pruning)">High (regular watering, fertilising, pruning)</option>
+        <label for="flowering_time">When would you like the plant to flower?</label>
+        <select name="flowering_time" id="flowering_time" class="form-select" required>
+          <option value="" disabled hidden selected>Select flowering time</option>
+          <option value="Spring">Spring</option>
+          <option value="Summer">Summer</option>
+          <option value="Autumn">Autumn</option>
+          <option value="Winter">Winter</option>
+          <option value="Year-round">Year-round</option>
         </select>
-        <div class="error-message" id="maintenance_level_error">Please select maintenance level</div>
+        <div class="error-message" id="flowering_time_error">Please select flowering time</div>
       </div>
 
       <div class="form-group">

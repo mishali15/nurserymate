@@ -10,17 +10,17 @@ validPassword = "password123"
 def get_all_plants():
     conn = sqlite3.connect('plants.db')
     c = conn.cursor()
-    c.execute("SELECT id, scientific_name, common_name, flowering_time, height, growing_requirements FROM plants")
+    c.execute("SELECT id, scientific_name, common_name, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type, planting_space, image_url, soil_type FROM plants")
     plants = c.fetchall()
     conn.close()
     return plants
 
-def add_plant(scientific_name, common_name, flowering_time, height, growing_requirements):
+def add_plant(scientific_name, common_name, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type_, planting_space, image_url, soil_type):
     conn = sqlite3.connect('plants.db')
     c = conn.cursor()
     c.execute(
-        "INSERT INTO plants (scientific_name, common_name, flowering_time, height, growing_requirements) VALUES (?, ?, ?, ?, ?)",
-        (scientific_name, common_name, flowering_time, height, growing_requirements)
+        "INSERT INTO plants (scientific_name, common_name, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type, planting_space, image_url, soil_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (scientific_name, common_name, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type_, planting_space, image_url, soil_type)
     )
     conn.commit()
     conn.close()
@@ -35,94 +35,111 @@ def remove_plant(plant_id):
 def query_plants(form_data):
     conn = sqlite3.connect('plants.db')
     c = conn.cursor()
-    query = "SELECT scientific_name, common_name, flowering_time, height, growing_requirements FROM plants"
-    c.execute(query)
+    c.execute("SELECT scientific_name, image_url, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type, planting_space, soil_type FROM plants")
     plants = c.fetchall()
+    print(f"Total plants fetched from database: {len(plants)}")
+
     def matches(plant):
-        scientific_name, common_name, flowering_time, height, growing_requirements = plant
-        gr = growing_requirements.lower()
+        (scientific_name, image_url, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type_, planting_space, soil_type) = plant
         match_count = 0
-        total_criteria = 8
-        # ...matching logic unchanged...
-        # Soil type matching
-        soil_type = form_data.get("soil_type", "").lower()
-        if soil_type:
-            if soil_type == "dry, sandy or loamy" and any(x in gr for x in ["dry", "sandy", "loam", "loamy"]):
+        total_criteria = 0
+
+        # Map form values to database values for better matching
+        value_mappings = {
+            "water_level": {
+                "Dry or drought-prone": ["dry", "drought"],
+                "Moderate moisture (well-watered)": ["moderate", "well-watered"],
+                "Wet or swampy": ["wet", "swampy"]
+            },
+            "salt_wind_tolerance": {
+                "Yes — coastal or exposed site": ["yes", "coastal"],
+                "No — sheltered inland site": ["no", "sheltered"]
+            },
+            "type": {
+                "Groundcover or creeping": ["groundcover", "creeping"],
+                "Tufting or grass-like": ["tufting", "grass"],
+                "Small herb or dainty flower": ["small herb", "dainty flower", "herb"],
+                "Shrub or tree": ["shrub", "tree"]
+            }
+        }
+
+        # Check each criteria if it was provided in the form
+        if form_data.get("flowering_time"):
+            total_criteria += 1
+            if form_data["flowering_time"].lower() in flowering_time.lower():
                 match_count += 1
-            elif soil_type == "heavy, clay or waterlogged" and any(x in gr for x in ["clay", "waterlogged", "heavy"]):
+        if form_data.get("ecological_function"):
+            total_criteria += 1
+            if form_data["ecological_function"].lower() in ecological_function.lower():
                 match_count += 1
-            elif soil_type == "moist, well-drained" and any(x in gr for x in ["moist", "well-drained", "well drained"]):
+        if form_data.get("sunlight"):
+            total_criteria += 1
+            form_sunlight = form_data["sunlight"].lower()
+            plant_sunlight = sunlight.lower()
+            # More flexible sunlight matching
+            if ("full sun" in form_sunlight and "full sun" in plant_sunlight) or \
+               ("partial shade" in form_sunlight and ("partial" in plant_sunlight or "shade" in plant_sunlight)) or \
+               ("full shade" in form_sunlight and ("shade" in plant_sunlight or "partial" in plant_sunlight)):
                 match_count += 1
-            elif soil_type == "saline or coastal" and any(x in gr for x in ["saline", "coastal", "salt"]):
+        if form_data.get("water_level"):
+            total_criteria += 1
+            form_water = form_data["water_level"].lower()
+            plant_water = water_level.lower()
+            # Use mapping for water level
+            if form_water in value_mappings["water_level"]:
+                for keyword in value_mappings["water_level"][form_water]:
+                    if keyword in plant_water:
+                        match_count += 1
+                        break
+        if form_data.get("salt_wind_tolerance"):
+            total_criteria += 1
+            form_tolerance = form_data["salt_wind_tolerance"].lower()
+            plant_tolerance = salt_wind_tolerance.lower()
+            # Use mapping for tolerance
+            if "yes" in form_tolerance and ("yes" in plant_tolerance or "coastal" in plant_tolerance):
                 match_count += 1
-        sunlight = form_data.get("sunlight", "").lower()
-        if sunlight:
-            if sunlight == "full sun (most of the day)" and "full sun" in gr:
+            elif "no" in form_tolerance and ("no" in plant_tolerance or "sheltered" in plant_tolerance):
                 match_count += 1
-            elif sunlight == "partial shade (some sun, some shade)" and any(x in gr for x in ["partial shade", "part shade", "semi-shade", "semi shade"]):
+        if form_data.get("type"):
+            total_criteria += 1
+            form_type = form_data["type"].lower()
+            plant_type = type_.lower()
+            # Use mapping for plant type
+            if form_type in value_mappings["type"]:
+                for keyword in value_mappings["type"][form_type]:
+                    if keyword in plant_type:
+                        match_count += 1
+                        break
+        if form_data.get("planting_space"):
+            total_criteria += 1
+            form_space = form_data["planting_space"].lower()
+            plant_space = planting_space.lower()
+            # Flexible space matching
+            if ("small" in form_space and "small" in plant_space) or \
+               ("medium" in form_space and "medium" in plant_space) or \
+               ("large" in form_space and "large" in plant_space) or \
+               ("low" in form_space and "low" in plant_space):
                 match_count += 1
-            elif sunlight == "full shade (very little direct sun)" and any(x in gr for x in ["full shade", "shade"]):
+        if form_data.get("soil_type"):
+            total_criteria += 1
+            form_soil = form_data["soil_type"].lower()
+            plant_soil = soil_type.lower()
+            # Flexible soil matching
+            if form_soil in plant_soil:
                 match_count += 1
-        water = form_data.get("water_availability", "").lower()
-        if water:
-            if water == "dry or drought-prone" and any(x in gr for x in ["dry", "drought"]):
-                match_count += 1
-            elif water == "moderate moisture (well-watered)" and any(x in gr for x in ["moderate moisture", "well-watered", "well watered", "moist"]):
-                match_count += 1
-            elif water == "wet or swampy" and any(x in gr for x in ["wet", "swamp", "waterlogged", "aquatic"]):
-                match_count += 1
-        salt = form_data.get("salt_wind_tolerance", "").lower()
-        if salt:
-            if salt == "yes — coastal or exposed site" and any(x in gr for x in ["salt", "coastal", "wind"]):
-                match_count += 1
-            elif salt == "no — sheltered inland site" and not any(x in gr for x in ["salt", "coastal", "wind"]):
-                match_count += 1
-        plant_type = form_data.get("plant_type", "").lower()
-        if plant_type:
-            if plant_type == "groundcover or creeping" and any(x in gr for x in ["groundcover", "creeping", "mat-forming", "low maintenance groundcover"]):
-                match_count += 1
-            elif plant_type == "tufting or grass-like" and any(x in gr for x in ["grass", "tufting", "spear grass", "wallaby grass"]):
-                match_count += 1
-            elif plant_type == "small herb or dainty flower" and any(x in gr for x in ["herb", "flower", "lily", "daisy", "everlasting"]):
-                match_count += 1
-            elif plant_type == "shrub or tree" and any(x in gr for x in ["shrub", "tree", "wattle", "banksia", "acacia"]):
-                match_count += 1
-        eco_func = form_data.get("ecological_function", "").lower()
-        if eco_func:
-            if eco_func == "attract birds and butterflies" and any(x in gr for x in ["attract", "birds", "butterflies", "wildlife"]):
-                match_count += 1
-            elif eco_func == "provide food (e.g., berries)" and any(x in gr for x in ["food", "berries"]):
-                match_count += 1
-            elif eco_func == "structural/visual interest" and any(x in gr for x in ["structural", "visual", "aesthetic", "flower", "fragrant"]):
-                match_count += 1
-            elif eco_func == "low-maintenance only" and any(x in gr for x in ["low maintenance", "low-maintenance", "drought-tolerant", "drought tolerant"]):
-                match_count += 1
-        maintenance = form_data.get("maintenance_level", "").lower()
-        if maintenance:
-            if maintenance == "low (minimal pruning, drought-tolerant)" and any(x in gr for x in ["low maintenance", "drought-tolerant", "minimal pruning"]):
-                match_count += 1
-            elif maintenance == "medium (occasional watering and pruning)" and any(x in gr for x in ["moderate maintenance", "occasional watering", "pruning"]):
-                match_count += 1
-            elif maintenance == "high (regular watering, fertilising, pruning)" and any(x in gr for x in ["regular watering", "fertilising", "pruning"]):
-                match_count += 1
-        space = form_data.get("planting_space", "").lower()
-        if space:
-            if space == "small pot / container" and any(x in gr for x in ["small", "container", "pot"]):
-                match_count += 1
-            elif space == "small garden bed (<1m spread)" and any(x in gr for x in ["small garden", "<1m", "small"]):
-                match_count += 1
-            elif space == "medium garden area (1–3m spread)" and any(x in gr for x in ["medium garden", "1–3m", "1-3m"]):
-                match_count += 1
-            elif space == "large area (>3m spread)" and any(x in gr for x in ["large", ">3m", "3m"]):
-                match_count += 1
-        return match_count >= 3
-    filtered_plants = [ 
+
+        print(f"Checking plant: {scientific_name}, criteria: {form_data}, matches: {match_count}/{total_criteria}, total_criteria: {total_criteria}")
+        print(f"Plant data: flowering_time={flowering_time}, ecological_function={ecological_function}, sunlight={sunlight}, water_level={water_level}, salt_wind_tolerance={salt_wind_tolerance}, type={type_}, planting_space={planting_space}, soil_type={soil_type}")
+        
+        # Or if no criteria were provided, return all plants
+        if total_criteria == 0:
+            return True
+        return (match_count / total_criteria) >= 0.4
+
+    filtered_plants = [
         {
             "scientific_name": p[0],
-            "common_name": p[1],
-            "flowering_time": p[2],
-            "height": p[3],
-            "growing_requirements": p[4]
+            "image_url": p[1]
         }
         for p in plants if matches(p)
     ]
@@ -130,7 +147,7 @@ def query_plants(form_data):
     return filtered_plants
 
 @app.route("/")
-def index():
+def home():
     return render_template("index.html")
 
 @app.route("/form", methods=["GET", "POST"])
@@ -139,11 +156,11 @@ def form():
         form_data = {
             "soil_type": request.form.get("soil_type"),
             "sunlight": request.form.get("sunlight"),
-            "water_availability": request.form.get("water_availability"),
+            "water_level": request.form.get("water_level"),
             "salt_wind_tolerance": request.form.get("salt_wind_tolerance"),
-            "plant_type": request.form.get("plant_type"),
+            "type": request.form.get("type"),
             "ecological_function": request.form.get("ecological_function"),
-            "maintenance_level": request.form.get("maintenance_level"),
+            "flowering_time": request.form.get("flowering_time"),
             "planting_space": request.form.get("planting_space"),
         }
         return redirect(url_for("results", **form_data))
@@ -154,19 +171,18 @@ def results():
     form_data = {
         "soil_type": request.args.get("soil_type"),
         "sunlight": request.args.get("sunlight"),
-        "water_availability": request.args.get("water_availability"),
+        "water_level": request.args.get("water_level"),
         "salt_wind_tolerance": request.args.get("salt_wind_tolerance"),
-        "plant_type": request.args.get("plant_type"),
+        "type": request.args.get("type"),
         "ecological_function": request.args.get("ecological_function"),
-        "maintenance_level": request.args.get("maintenance_level"),
+        "flowering_time": request.args.get("flowering_time"),
         "planting_space": request.args.get("planting_space"),
     }
-    matching_plants = query_plants(form_data)
-    return render_template("results.html", form_data=form_data, plants=matching_plants)
+    plants = query_plants(form_data)
+    return render_template("results.html", plants=plants)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    error = None
     if request.method == "POST":
         username = request.form.get("username", "")
         password = request.form.get("password", "")
@@ -175,7 +191,8 @@ def login():
             return redirect(url_for("adminDashboard"))
         else:
             error = "Invalid login credentials. Please try again."
-    return render_template("login.html", error=error)
+            return render_template("login.html", error=error)
+    return render_template("login.html")
 
 @app.route("/adminDashboard", methods=["GET", "POST"])
 def adminDashboard():
@@ -192,8 +209,15 @@ def adminDashboard():
             common_name = request.form.get("common_name")
             flowering_time = request.form.get("flowering_time")
             height = request.form.get("height")
-            growing_requirements = request.form.get("growing_requirements")
-            add_plant(scientific_name, common_name, flowering_time, height, growing_requirements)
+            ecological_function = request.form.get("ecological_function")
+            sunlight = request.form.get("sunlight")
+            water_level = request.form.get("water_level")
+            salt_wind_tolerance = request.form.get("salt_wind_tolerance")
+            type_ = request.form.get("type")
+            planting_space = request.form.get("planting_space")
+            image_url = request.form.get("image_url")
+            soil_type = request.form.get("soil_type")
+            add_plant(scientific_name, common_name, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type_, planting_space, image_url, soil_type)
 
     plants = get_all_plants()
     return render_template("dashboard.html", plants=plants)
@@ -210,10 +234,17 @@ def init_db():
         CREATE TABLE IF NOT EXISTS plants (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             scientific_name TEXT NOT NULL,
-            common_name TEXT NOT NULL,
+            common_name TEXT,
             flowering_time TEXT,
             height TEXT,
-            growing_requirements TEXT
+            ecological_function TEXT,
+            sunlight TEXT,
+            water_level TEXT,
+            salt_wind_tolerance TEXT,
+            type TEXT,
+            planting_space TEXT,
+            image_url TEXT,
+            soil_type TEXT
         )
     ''')
     conn.commit()
