@@ -160,7 +160,6 @@ def form():
             "salt_wind_tolerance": request.form.get("salt_wind_tolerance"),
             "type": request.form.get("type"),
             "ecological_function": request.form.get("ecological_function"),
-            "flowering_time": request.form.get("flowering_time"),
             "planting_space": request.form.get("planting_space"),
         }
         return redirect(url_for("results", **form_data))
@@ -175,7 +174,6 @@ def results():
         "salt_wind_tolerance": request.args.get("salt_wind_tolerance"),
         "type": request.args.get("type"),
         "ecological_function": request.args.get("ecological_function"),
-        "flowering_time": request.args.get("flowering_time"),
         "planting_space": request.args.get("planting_space"),
     }
     plants = query_plants(form_data)

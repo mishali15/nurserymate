@@ -184,6 +184,7 @@
       .nav-links {
         display: flex;
         gap: 20px;
+        flex-wrap: wrap;
       }
 
       .nav-links a {
@@ -292,19 +293,6 @@
           <option value="Low-maintenance only">Low-maintenance only</option>
         </select>
         <div class="error-message" id="ecological_function_error">Please select ecological function</div>
-      </div>
-
-      <div class="form-group">
-        <label for="flowering_time">When would you like the plant to flower?</label>
-        <select name="flowering_time" id="flowering_time" class="form-select" required>
-          <option value="" disabled hidden selected>Select flowering time</option>
-          <option value="Spring">Spring</option>
-          <option value="Summer">Summer</option>
-          <option value="Autumn">Autumn</option>
-          <option value="Winter">Winter</option>
-          <option value="Year-round">Year-round</option>
-        </select>
-        <div class="error-message" id="flowering_time_error">Please select flowering time</div>
       </div>
 
       <div class="form-group">
