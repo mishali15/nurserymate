@@ -143,6 +143,12 @@ def query_plants(form_data):
         }
         for p in plants if matches(p)
     ]
+    
+    # Debug: Print the filtered plants with their image URLs
+    print(f"Filtered plants: {len(filtered_plants)}")
+    for plant in filtered_plants:
+        print(f"Plant: {plant['scientific_name']}, Image URL: {plant['image_url']}")
+    
     conn.close()
     return filtered_plants
 
@@ -177,7 +183,7 @@ def results():
         "planting_space": request.args.get("planting_space"),
     }
     plants = query_plants(form_data)
-    return render_template("results.html", plants=plants)
+    return render_template("results_final.html", plants=plants)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
