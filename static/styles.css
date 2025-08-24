@@ -1,0 +1,8 @@
+/* Additional styles for plant details box */
+.plant-details-box {
+    background-color: white;
+    border-radius: 0; /* 0 corner radius */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow effect */
+    padding: 20px; /* Padding for inner content */
+    margin: 20px; /* Margin around the box */
+}

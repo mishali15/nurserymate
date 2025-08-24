@@ -4,8 +4,8 @@ import sqlite3
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 
-validUsername = "admin"
-validPassword = "password123"
+valid_username = "admin"
+valid_password = "password123"
 
 def get_all_plants():
     conn = sqlite3.connect('plants.db')
@@ -221,7 +221,25 @@ def plant_details(plant_id):
     plant = get_plant_by_id(plant_id)  # Fetch plant data from the database
     return render_template("plant_details.html", plant=plant)
 
-@app.route("/results")
+@app.route("/download_care_summary/<int:plant_id>")
+def download_care_summary(plant_id):
+    plant = get_plant_by_id(plant_id)
+    if plant:
+        care_requirements = f"""
+        Plant Care Summary for {plant['scientific_name']}:
+        
+        Sunlight: {plant['sunlight']}
+        Water Level: {plant['water_level']}
+        Soil Type: {plant['soil_type']}
+        Ecological Function: {plant['ecological_function']}
+        Planting Space: {plant['planting_space']}
+        """
+        response = make_response(care_requirements)
+        response.headers["Content-Disposition"] = f"attachment; filename={plant['scientific_name']}_care_summary.txt"
+        response.headers["Content-Type"] = "text/plain"
+        return response
+
+@app.route("/results", methods=["GET"])
 def results():
     form_data = {
         "soil_type": request.args.get("soil_type"),
@@ -240,7 +258,7 @@ def login():
     if request.method == "POST":
         username = request.form.get("username", "")
         password = request.form.get("password", "")
-        if username == validUsername and password == validPassword:
+        if username == valid_username and password == valid_password:
             session['logged_in'] = True
             return redirect(url_for("adminDashboard"))
         else:

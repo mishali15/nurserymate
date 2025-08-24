@@ -16,7 +16,7 @@ def fix_specific_matches():
         ("austrostipa_scabra_ssp._falcata.jfif", "austrostipa_scabra_ssp.falcata.jpg"),
         ("austrostipa_setacea.jfif", "austrostipa_setacea.jpg"),
         ("baumea_articulata.jfif", "baumea_articulata.jpg"),
-        ("sarcocornia.jfif", "sarcocornia-quinqueflora.jpg"),
+        ("sarcocornia.jfif", "sarcocornia_quinqueflora.jpg"),
         ("bothriochloa.jfif", "bothriochloa.jpg"),
         ("bulbine_semibarbata.jfif", "bulbine_semibarbata.jpg"),
         ("bursaria_spinosa_var._spinosa.jfif", "bursaria_spinosa.jpg"),

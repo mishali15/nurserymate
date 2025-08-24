@@ -81,9 +81,9 @@
             <tbody>
                 {% for plant in plants %}
                 <tr>
-                    <td>{{ plant[1] }}</td>
+                    <td>{{ plant.scientific_name }}</td>
                     <td>
-                        <input type="radio" name="remove_id" value="{{ plant[0] }}">
+                        <input type="radio" name="remove_id" value="{{ plant.id }}">
                     </td>
                 </tr>
                 {% endfor %}

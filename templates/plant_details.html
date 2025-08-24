@@ -6,18 +6,22 @@
     <title>Plant Details - NurseryMate</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
+
         body {
             display: flex;
             height: 100vh;
             font-family: 'Montserrat', sans-serif;
             background-color: #f7f6f3;
         }
+
+        /* Side Navbar */
         .side-navbar {
             width: 250px;
             background-color: #ffffff;
@@ -27,57 +31,174 @@
             align-items: center;
             border-right: 1px solid #d9d9d9;
         }
+
+        .side-navbar .logo {
+            width: 24px;
+            height: 24px;
+            margin: 0;
+            margin-right: 8px;
+        }
+
+        .side-navbar h2 {
+            font-weight: 700;
+            font-size: 18px;
+            color: #8B8C89;
+            margin: 0;
+            line-height: 24px;
+            text-align: left;
+        }
+        .navbar-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .navbar-divider {
+            border: none;
+            border-top: 1px solid #d9d9d9;
+            margin: 0 0 16px 0;
+            width: 100%;
+        }
+
+        .nav-links {
+            width: 100%;
+        }
+
+        .nav-links a {
+            display: block;
+            text-decoration: none;
+            color: #8B8C89;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a.active,
+        .nav-links a:hover {
+            color: #C2E4CF;
+            font-weight: bold;
+            border-left: 4px solid transparent;
+            background-color: transparent;
+        }
+
+        /* Main content */
         .main-content {
             flex-grow: 1;
             padding: 40px 60px;
+            overflow-y: auto;
         }
+
         h1 {
             color: #A3B18A;
             font-weight: 700;
             font-size: 22px;
             margin-bottom: 30px;
         }
+
         .plant-image {
             width: 100%;
             max-width: 300px;
             margin-bottom: 20px;
         }
-        .requirement {
-            background-color: #C2E4CF;
-            padding: 10px;
-            margin: 20px 0;
+
+        .plant-details-container {
+            height: 700px; /* Set height to 700px */
+            width: 700px; /* Set width to 700px */
+            background-color: white;
+            border-radius: 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            display: flex;
         }
+
+        .plant-details-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            margin-left: 20px; /* Space between image and text */
+        }
+
         .back-link {
             margin-top: 20px;
             text-decoration: none;
-            color: #A3B18A;
+            color: #8B8C89;
+            font-size: 12px; /* Smaller font size */
+            font-weight: normal; /* Remove bold */
+            position: absolute; /* Ensure it's positioned correctly */
+            bottom: 10px; /* Position at the bottom */
+            right: 10px; /* Position to the right */
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .side-navbar {
+                width: 100%;
+                flex-direction: row;
+                justify-content: space-around;
+                padding: 20px 10px;
+                border-right: none;
+                border-bottom: 1px solid #d9d9d9;
+            }
+
+            .side-navbar .logo {
+                display: none;
+            }
+
+            .nav-links {
+                display: flex;
+                gap: 20px;
+            }
+
+            .nav-links a {
+                border-left: none;
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+
+            .main-content {
+                padding: 20px 15px;
+            }
         }
     </style>
 </head>
 <body>
-<nav class="side-navbar">
+  <nav class="side-navbar" style="position: relative;">
     <div class="navbar-header">
-        <img src="{{ url_for('static', filename='images/download.png') }}" alt="NurseryMate Logo" class="logo" />
-        <h2>NurseryMate</h2>
+      <img src="{{ url_for('static', filename='images/download.png') }}" alt="NurseryMate Logo" class="logo" />
+      <h2>NurseryMate</h2>
     </div>
     <hr class="navbar-divider" />
     <div class="nav-links">
-        <a href="{{ url_for('form') }}">Survey form</a>
-        <a href="{{ url_for('results') }}" class="active" aria-current="page">My results</a>
-        <a href="{{ url_for('login') }}">Admin login</a>
+      <a href="{{ url_for('form') }}">Survey form</a>
+      <a href="{{ url_for('results') }}">My results</a>
+      <a href="{{ url_for('login') }}">Admin login</a>
     </div>
-</nav>
+  </nav>
 
     <main class="main-content">
-<h1>{{ plant.scientific_name }}:</h1>
-<img src="{{ plant.image_url }}" alt="{{ plant.scientific_name }}" class="plant-image">
-<p><strong>Product name:</strong> {{ plant.product_name }}</p>
-<p><strong>Size:</strong> {{ plant.size }}</p>
-<p><strong>Flowering time:</strong> {{ plant.flowering_time }}</p>
-<p class="requirement"><strong>Requirement:</strong> {{ plant.requirements }}</p>
-<button class="generate-summary">Generate plant care summary</button>
-<p class="stock-availability">Stock availability: {{ plant.stock_availability }}</p>
-        <a href="{{ url_for('results') }}" class="back-link">back to list →</a>
+            <div class="plant-details-container" style="margin-top: 0;">
+            <img src="{{ plant.image_url }}" alt="{{ plant.scientific_name }}" class="plant-image" style="width: 100%; height: 300px; object-fit: cover; margin-top: 20px;">
+            
+            <div class="plant-details-content" style="margin-top: 20px; display: flex; flex-direction: column; justify-content: flex-start;">
+                
+                <div style="flex: 1; margin-right: 20px; margin-left: 40px;">
+                {% if plant.common_name %}
+<p><strong>Product name:</strong><br><br> <span style="color: #8B8C89;">{{ plant.common_name }}</span></p>
+                {% endif %}
+<br>
+<p><strong>Size:</strong><br><br> <span style="color: #8B8C89;">{{ plant.height }}</span></p>
+<br>
+<p><strong>Flowering time:</strong><br><br> <span style="color: #8B8C89;">{{ plant.flowering_time }}</span></p>
+            </div>
+            
+            <a href="{{ url_for('results') }}" class="back-link">Back to results →</a>
+        </div>
     </main>
 </body>
 </html>
