@@ -13,7 +13,26 @@ def get_all_plants():
     c.execute("SELECT id, scientific_name, common_name, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type, planting_space, image_url, soil_type FROM plants")
     plants = c.fetchall()
     conn.close()
-    return plants
+    
+    # Convert tuples to dictionaries
+    plant_list = []
+    for p in plants:
+        plant_list.append({
+            "id": p[0],
+            "scientific_name": p[1],
+            "common_name": p[2],
+            "flowering_time": p[3],
+            "height": p[4],
+            "ecological_function": p[5],
+            "sunlight": p[6],
+            "water_level": p[7],
+            "salt_wind_tolerance": p[8],
+            "type": p[9],
+            "planting_space": p[10],
+            "image_url": p[11],
+            "soil_type": p[12]
+        })
+    return plant_list
 
 def add_plant(scientific_name, common_name, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type_, planting_space, image_url, soil_type):
     conn = sqlite3.connect('plants.db')
@@ -25,6 +44,31 @@ def add_plant(scientific_name, common_name, flowering_time, height, ecological_f
     conn.commit()
     conn.close()
 
+def get_plant_by_id(plant_id):
+    conn = sqlite3.connect('plants.db')
+    c = conn.cursor()
+    c.execute("SELECT id, scientific_name, common_name, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type, planting_space, image_url, soil_type FROM plants WHERE id = ?", (plant_id,))
+    plant = c.fetchone()
+    conn.close()
+    
+    if plant:
+        return {
+            "id": plant[0],
+            "scientific_name": plant[1],
+            "common_name": plant[2],
+            "flowering_time": plant[3],
+            "height": plant[4],
+            "ecological_function": plant[5],
+            "sunlight": plant[6],
+            "water_level": plant[7],
+            "salt_wind_tolerance": plant[8],
+            "type": plant[9],
+            "planting_space": plant[10],
+            "image_url": plant[11],
+            "soil_type": plant[12]
+        }
+    return None
+
 def remove_plant(plant_id):
     conn = sqlite3.connect('plants.db')
     c = conn.cursor()
@@ -35,12 +79,12 @@ def remove_plant(plant_id):
 def query_plants(form_data):
     conn = sqlite3.connect('plants.db')
     c = conn.cursor()
-    c.execute("SELECT scientific_name, image_url, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type, planting_space, soil_type FROM plants")
+    c.execute("SELECT id, scientific_name, image_url, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type, planting_space, soil_type FROM plants")
     plants = c.fetchall()
     print(f"Total plants fetched from database: {len(plants)}")
 
     def matches(plant):
-        (scientific_name, image_url, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type_, planting_space, soil_type) = plant
+        (id, scientific_name, image_url, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type_, planting_space, soil_type) = plant
         match_count = 0
         total_criteria = 0
 
@@ -138,8 +182,9 @@ def query_plants(form_data):
 
     filtered_plants = [
         {
-            "scientific_name": p[0],
-            "image_url": p[1]
+            "id": p[0],  # ID field
+            "scientific_name": p[1],  # scientific_name field
+            "image_url": p[2]  # image_url field
         }
         for p in plants if matches(p)
     ]
@@ -170,6 +215,11 @@ def form():
         }
         return redirect(url_for("results", **form_data))
     return render_template("form.html")
+
+@app.route("/plant/<int:plant_id>")
+def plant_details(plant_id):
+    plant = get_plant_by_id(plant_id)  # Fetch plant data from the database
+    return render_template("plant_details.html", plant=plant)
 
 @app.route("/results")
 def results():

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Details - NurseryMate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300..800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            display: flex;
+            height: 100vh;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f7f6f3;
+        }
+        .side-navbar {
+            width: 250px;
+            background-color: #ffffff;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-right: 1px solid #d9d9d9;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 40px 60px;
+        }
+        h1 {
+            color: #A3B18A;
+            font-weight: 700;
+            font-size: 22px;
+            margin-bottom: 30px;
+        }
+        .plant-image {
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 20px;
+        }
+        .requirement {
+            background-color: #C2E4CF;
+            padding: 10px;
+            margin: 20px 0;
+        }
+        .back-link {
+            margin-top: 20px;
+            text-decoration: none;
+            color: #A3B18A;
+        }
+    </style>
+</head>
+<body>
+<nav class="side-navbar">
+    <div class="navbar-header">
+        <img src="{{ url_for('static', filename='images/download.png') }}" alt="NurseryMate Logo" class="logo" />
+        <h2>NurseryMate</h2>
+    </div>
+    <hr class="navbar-divider" />
+    <div class="nav-links">
+        <a href="{{ url_for('form') }}">Survey form</a>
+        <a href="{{ url_for('results') }}" class="active" aria-current="page">My results</a>
+        <a href="{{ url_for('login') }}">Admin login</a>
+    </div>
+</nav>
+
+    <main class="main-content">
+<h1>{{ plant.scientific_name }}:</h1>
+<img src="{{ plant.image_url }}" alt="{{ plant.scientific_name }}" class="plant-image">
+<p><strong>Product name:</strong> {{ plant.product_name }}</p>
+<p><strong>Size:</strong> {{ plant.size }}</p>
+<p><strong>Flowering time:</strong> {{ plant.flowering_time }}</p>
+<p class="requirement"><strong>Requirement:</strong> {{ plant.requirements }}</p>
+<button class="generate-summary">Generate plant care summary</button>
+<p class="stock-availability">Stock availability: {{ plant.stock_availability }}</p>
+        <a href="{{ url_for('results') }}" class="back-link">back to list →</a>
+    </main>
+</body>
+</html>

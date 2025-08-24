@@ -203,7 +203,7 @@
           <div class="result-item">
             <img class="result-image" src="{{ plant.image_url }}" alt="{{ plant.scientific_name }}">
             <div class="result-info">{{ plant.scientific_name }}</div>
-            <a href="#" class="view-details">view details →</a>
+<a href="{{ url_for('plant_details', plant_id=plant.id) }}" class="view-details">view details →</a>
           </div>
         {% endfor %}
       {% else %}
