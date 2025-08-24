@@ -70,44 +70,68 @@
     </header>
     <h2 style="color: #2D2D2D; font-family: 'Montserrat', sans-serif; margin-left: 40px; font-size: 24px;">Admin dashboard</h2>
     <h3 style="margin-left: 40px; color: #A3B18A; margin-top: 20px;">Remove plants:</h3>
-    <table style="width: 60%; background-color: #FFFFFF; border-collapse: collapse; margin-left: 40px; margin-right: auto; margin-top: 20px;">
-        <thead>
-            <tr>
-                <th style="padding-left: 20px;">Plant name</th>
-                <th>Remove</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for plant in plants %}
-            <tr>
-                <td>{{ plant[1] }}</td>
-                <td>
-                    <input type="radio" name="remove_id" value="{{ plant[0] }}">
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <form method="POST">
+        <table style="width: 60%; background-color: #FFFFFF; border-collapse: collapse; margin-left: 40px; margin-right: auto; margin-top: 20px;">
+            <thead>
+                            <tr>
+                                <th style="padding-left: 20px; color: #8B8C89;">Plant name</th>
+                                <th style="color: #8B8C89;">Remove</th>
+                            </tr>
+            </thead>
+            <tbody>
+                {% for plant in plants %}
+                <tr>
+                    <td>{{ plant[1] }}</td>
+                    <td>
+                        <input type="radio" name="remove_id" value="{{ plant[0] }}">
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" name="remove_plant" style="margin-left: 40px; margin-top: 20px; background-color: #a3b18a; border: none; font-family: 'Montserrat', sans-serif; width: 150px; height: 50px; font-size: 15px;">Remove plant</button>
+    </form>
     <main>
         <section>
             <h3>Add plants:</h3>
             <form method="POST">
-                <label for="scientific_name">Plant name:</label>
-                <input type="text" id="scientific_name" name="scientific_name" required>
-                
-                <label for="light">Light:</label>
-                <input type="text" id="light" name="light" required>
-                
-                <label for="requirements">Requirements:</label>
-                <input type="text" id="requirements" name="growing_requirements" required>
-                
-                <label for="flowering_time">Flowering time:</label>
-                <input type="text" id="flowering_time" name="flowering_time" required>
-                
-                <button type="submit" name="add_plant">Add new plant</button>
+                <table style="width: 60%; background-color: #FFFFFF; border-collapse: collapse; margin-left: 40px; margin-right: auto; margin-top: 20px;">
+                    <thead>
+                        <tr>
+                            <th style="padding-left: 20px; color: #8B8C89;">Scientific Name</th>
+                            <th style="color: #8B8C89;">Common Name</th>
+                            <th style="color: #8B8C89;">Height</th>
+                            <th style="color: #8B8C89;">Ecological Function</th>
+                            <th style="color: #8B8C89;">Sunlight</th>
+                            <th style="color: #8B8C89;">Water Level</th>
+                            <th style="color: #8B8C89;">Salt/Wind Tolerance</th>
+                            <th style="color: #8B8C89;">Type</th>
+                            <th style="color: #8B8C89;">Planting Space</th>
+                            <th style="color: #8B8C89;">Flowering Time</th>
+                            <th style="color: #8B8C89;">Soil Type</th>
+                            <th style="color: #8B8C89;">Image URL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="text" name="scientific_name" required style="width: 90%;"></td>
+                            <td><input type="text" name="common_name" required style="width: 90%;"></td>
+                            <td><input type="text" name="height" required style="width: 90%;"></td>
+                            <td><input type="text" name="ecological_function" required style="width: 90%;"></td>
+                            <td><input type="text" name="sunlight" required style="width: 90%;"></td>
+                            <td><input type="text" name="water_level" required style="width: 90%;"></td>
+                            <td><input type="text" name="salt_wind_tolerance" required style="width: 90%;"></td>
+                            <td><input type="text" name="type" required style="width: 90%;"></td>
+                            <td><input type="text" name="planting_space" required style="width: 90%;"></td>
+                            <td><input type="text" name="flowering_time" required style="width: 90%;"></td>
+                            <td><input type="text" name="soil_type" required style="width: 90%;"></td>
+                            <td><input type="text" name="image_url" required style="width: 90%;"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button type="submit" name="add_plant" style="margin-left: 40px; margin-top: 20px; background-color: #a3b18a; border: none; font-family: 'Montserrat', sans-serif; width: 150px; height: 50px; font-size: 15px;">Add new plant</button>
             </form>
         </section>
     </main>
 </body>
 </html>
-</create_file>
