@@ -4,9 +4,11 @@
 # Data: Uses SQLite database 'plants.db' to store plant information
 # Structure: Flask-based web application with routes for different functionalities
 
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 import sqlite3
-
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+import io
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 
@@ -261,12 +263,16 @@ def query_plants(form_data):
 
 # Route: Home page
 # Purpose: Serve the main landing page of the application
+
 @app.route("/")
 def home():
     return render_template("index.html")
 
 # Route: Plant selection form
 # Purpose: Handle plant selection form (GET for display, POST for form submission)
+# Input: User fills out form and submits
+# Output: Redirect to results page with query parameters
+
 @app.route("/form", methods=["GET", "POST"])
 def form():
     if request.method == "POST":
@@ -284,30 +290,12 @@ def form():
 
 # Route: Plant details page
 # Purpose: Display detailed information about a specific plant
+
 @app.route("/plant/<int:plant_id>")
 def plant_details(plant_id):
     plant = get_plant_by_id(plant_id)  # Fetch plant data from the database
     return render_template("plant_details.html", plant=plant)
 
-# Route: Download plant care summary
-# Purpose: Generate and download a text file with plant care information
-@app.route("/download_care_summary/<int:plant_id>")
-def download_care_summary(plant_id):
-    plant = get_plant_by_id(plant_id)
-    if plant:
-        care_requirements = f"""
-        Plant Care Summary for {plant['scientific_name']}:
-        
-        Sunlight: {plant['sunlight']}
-        Water Level: {plant['water_level']}
-        Soil Type: {plant['soil_type']}
-        Ecological Function: {plant['ecological_function']}
-        Planting Space: {plant['planting_space']}
-        """
-        response = make_response(care_requirements)
-        response.headers["Content-Disposition"] = f"attachment; filename={plant['scientific_name']}_care_summary.txt"
-        response.headers["Content-Type"] = "text/plain"
-        return response
 
 # Route: Plant recommendation results
 # Purpose: Display plant recommendations based on user criteria from query parameters
@@ -342,6 +330,9 @@ def login():
 
 # Route: Admin dashboard
 # Purpose: Provide admin interface for managing plant database (add/remove plants)
+# Control structure: Nested conditionals to handle different form actions.
+# Input: Entering username and password to log in
+# Output: Rendered dashboard with current plant list
 @app.route("/adminDashboard", methods=["GET", "POST"])
 def adminDashboard():
     if not session.get('logged_in'):
@@ -374,6 +365,40 @@ def adminDashboard():
 def logout():
     session.pop('logged_in', None)
     return redirect(url_for('login'))
+
+@app.route("/generate_summary/<int:plant_id>", methods=["POST"])
+def generate_summary(plant_id):
+    # Fetch plant from DB
+    conn = sqlite3.connect("plants.db")
+    c = conn.cursor()
+    c.execute("SELECT scientific_name, common_name, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type, planting_space FROM plants WHERE id=?", (plant_id,))
+    plant = c.fetchone()
+    conn.close()
+
+    if not plant:
+        return "Plant not found", 404
+
+    # Create PDF in memory
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer)
+    styles = getSampleStyleSheet()
+    story = []
+
+    story.append(Paragraph(f"<b>{plant[1]} ({plant[0]})</b>", styles["Title"]))
+    story.append(Spacer(1, 12))
+    story.append(Paragraph(f"<b>Flowering Time:</b> {plant[2]}", styles["Normal"]))
+    story.append(Paragraph(f"<b>Height:</b> {plant[3]}", styles["Normal"]))
+    story.append(Paragraph(f"<b>Ecological Function:</b> {plant[4]}", styles["Normal"]))
+    story.append(Paragraph(f"<b>Sunlight:</b> {plant[5]}", styles["Normal"]))
+    story.append(Paragraph(f"<b>Water Level:</b> {plant[6]}", styles["Normal"]))
+    story.append(Paragraph(f"<b>Salt/Wind Tolerance:</b> {plant[7]}", styles["Normal"]))
+    story.append(Paragraph(f"<b>Type:</b> {plant[8]}", styles["Normal"]))
+    story.append(Paragraph(f"<b>Planting Space:</b> {plant[9]}", styles["Normal"]))
+
+    doc.build(story)
+
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True, download_name=f"{plant[1]}_care_summary.pdf", mimetype="application/pdf")
 
 # Function: init_db
 # Purpose: Initialize the database by creating the plants table if it doesn't exist

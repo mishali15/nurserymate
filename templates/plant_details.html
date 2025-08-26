@@ -200,5 +200,14 @@
             <a href="{{ url_for('results') }}" class="back-link">Back to results →</a>
         </div>
     </main>
+<!-- Generate Plant Care Summary Button -->
+<form action="{{ url_for('generate_summary', plant_id=plant.id) }}" method="post" style="margin-top: 40px; text-align: center;">
+    <button type="submit" 
+            style="padding: 12px 24px; background-color: #A3B18A; color: white; 
+                   border: none; border-radius: 8px; font-size: 14px; cursor: pointer;">
+        Generate plant care summary
+    </button>
+</form>
+
 </body>
 </html>
