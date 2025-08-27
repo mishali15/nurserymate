@@ -183,7 +183,7 @@
 
     <main class="main-content">
             <div class="plant-details-container" style="margin-top: 0;">
-            <img src="{{ plant.image_url }}" alt="{{ plant.scientific_name }}" class="plant-image" style="width: 100%; height: 300px; object-fit: cover; margin-top: 20px;">
+            <img src="{{ url_for('static', filename=plant.image_url.replace('/static/', '')) }}" alt="{{ plant.scientific_name }}" class="plant-image" style="width: 100%; height: 300px; object-fit: cover; margin-top: 20px;">
             
             <div class="plant-details-content" style="margin-top: 20px; display: flex; flex-direction: column; justify-content: flex-start;">
                 
@@ -204,7 +204,7 @@
 <form action="{{ url_for('generate_summary', plant_id=plant.id) }}" method="post" style="margin-top: 40px; text-align: center;">
     <button type="submit" 
             style="padding: 12px 24px; background-color: #A3B18A; color: white; 
-                   border: none; border-radius: 8px; font-size: 14px; cursor: pointer;">
+                   border: none; border-radius: 0; font-size: 14px; cursor: pointer; color: #2d2d2d; font-family: 'Open Sans', sans-serif;">
         Generate plant care summary
     </button>
 </form>

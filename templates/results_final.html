@@ -110,7 +110,7 @@
       display: flex;
       background: white;
       padding: 15px;
-      border-radius: 8px;
+      border-radius: 0px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       align-items: center;
     }
@@ -119,7 +119,7 @@
       width: 150px;
       height: 100px;
       background-color: #e0e0e0;
-      border-radius: 4px;
+      border-radius: 0px;
       flex-shrink: 0;
       margin-right: 20px;
       object-fit: cover;
@@ -201,7 +201,7 @@
       {% if plants %}
         {% for plant in plants %}
           <div class="result-item">
-            <img class="result-image" src="{{ plant.image_url }}" alt="{{ plant.scientific_name }}">
+            <img class="result-image" src="{{ url_for('static', filename=plant.image_url.replace('/static/', '')) }}" alt="{{ plant.scientific_name }}">
             <div class="result-info">{{ plant.scientific_name }}</div>
 <a href="{{ url_for('plant_details', plant_id=plant.id) }}" class="view-details">view details →</a>
           </div>

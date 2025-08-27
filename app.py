@@ -7,6 +7,8 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 import sqlite3
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from werkzeug.utils import secure_filename
+import os
 from reportlab.lib.styles import getSampleStyleSheet
 import io
 app = Flask(__name__)
@@ -66,6 +68,18 @@ def get_all_plants():
 # Output: None (just stored in database)
 
 def add_plant(scientific_name, common_name, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type_, planting_space, image_url, soil_type):
+    # Validate inputs - existence check
+    if not all([scientific_name, common_name, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type_, planting_space, image_url, soil_type]):
+        raise ValueError("All fields must be provided.")
+    
+    # Validate height - type and range checking
+    try:
+        height_value = float(height)
+        if height_value < 0:
+            raise ValueError("Height must be a non-negative number.")
+    except (ValueError, TypeError):
+        raise ValueError("Height must be a valid number.")
+    
     conn = sqlite3.connect('plants.db')
     c = conn.cursor()
     c.execute(
@@ -81,6 +95,10 @@ def add_plant(scientific_name, common_name, flowering_time, height, ecological_f
 # Output: A dictionary containing plant details if found, else None
 
 def get_plant_by_id(plant_id):
+    # Validate plant_id is a positive integer
+    if not isinstance(plant_id, int) or plant_id <= 0:
+        return None
+    
     conn = sqlite3.connect('plants.db')
     c = conn.cursor()
     c.execute("SELECT id, scientific_name, common_name, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type, planting_space, image_url, soil_type FROM plants WHERE id = ?", (plant_id,))
@@ -342,7 +360,12 @@ def adminDashboard():
     if request.method == "POST":
         if "remove_id" in request.form:
             plant_id = request.form.get("remove_id")
-            remove_plant(plant_id)
+            # Directly remove the plant using the retrieved plant_id
+            if plant_id:
+                remove_plant(int(plant_id))
+                flash("Plant removed successfully.")
+            else:
+                flash("No plant ID provided. Please select a plant to remove.")
         elif "add_plant" in request.form:
             scientific_name = request.form.get("scientific_name")
             common_name = request.form.get("common_name")
@@ -354,9 +377,24 @@ def adminDashboard():
             salt_wind_tolerance = request.form.get("salt_wind_tolerance")
             type_ = request.form.get("type")
             planting_space = request.form.get("planting_space")
-            image_url = request.form.get("image_url")
+            image_file = request.files.get("image_file")
+            if image_file:
+                image_filename = secure_filename(image_file.filename)
+                image_file.save(os.path.join('static/images', image_filename))
+                image_url = f"/static/images/{image_filename}"
+            else:
+                image_url = None
+            # Convert user input to proper static path format
+            if image_url and not image_url.startswith('/static/'):
+                image_url = f"/static/{image_url}"
             soil_type = request.form.get("soil_type")
-            add_plant(scientific_name, common_name, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type_, planting_space, image_url, soil_type)
+            
+            # Validate inputs before adding plant
+            try:
+                add_plant(scientific_name, common_name, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type_, planting_space, image_url, soil_type)
+                flash("Plant added successfully.")
+            except ValueError as e:
+                flash(f"Error adding plant: {str(e)}")
 
     plants = get_all_plants()
     return render_template("dashboard.html", plants=plants)
@@ -368,6 +406,10 @@ def logout():
 
 @app.route("/generate_summary/<int:plant_id>", methods=["POST"])
 def generate_summary(plant_id):
+    # Validate plant_id is a positive integer
+    if not isinstance(plant_id, int) or plant_id <= 0:
+        return "Invalid plant ID", 400
+    
     # Fetch plant from DB
     conn = sqlite3.connect("plants.db")
     c = conn.cursor()
