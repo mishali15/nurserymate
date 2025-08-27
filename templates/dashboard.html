@@ -65,8 +65,10 @@
 </head>
 <body>
     <header>
-        <img src="{{ url_for('static', filename='images/download.png') }}" alt="NurseryMate Logo" class="logo">
-        <h1 style="margin: 0;">NurseryMate</h1>
+        <a href="{{ url_for('home') }}" style="display: flex; align-items: center; text-decoration: none;">
+            <img src="{{ url_for('static', filename='images/download.png') }}" alt="NurseryMate Logo" class="logo">
+            <h1 style="margin: 0;">NurseryMate</h1>
+        </a>
     </header>
     <h2 style="color: #2D2D2D; font-family: 'Montserrat', sans-serif; margin-left: 40px; font-size: 24px;">Admin dashboard</h2>
     <h3 style="margin-left: 40px; color: #A3B18A; margin-top: 20px;">Remove plants:</h3>
