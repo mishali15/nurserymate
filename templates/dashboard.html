@@ -125,7 +125,12 @@
                             <td><input type="text" name="planting_space" required style="width: 90%;"></td>
                             <td><input type="text" name="flowering_time" required style="width: 90%;"></td>
                             <td><input type="text" name="soil_type" required style="width: 90%;"></td>
-                            <td><input type="file" name="image_file" accept=".jpg,.jpeg" required style="width: 90%;"></td>
+                            <td>
+                                <label for="image_file" style="background-color: #a3b18a; border: none; font-family: 'Montserrat', sans-serif; padding: 10px 20px; font-size: 15px; color: white; cursor: pointer; display: inline-block; text-align: center;">
+                                    Choose Image
+                                </label>
+                                <input type="file" name="image_file" accept=".jpg,.jpeg" required id="image_file" style="display: none;">
+                            </td>
                         </tr>
                     </tbody>
                 </table>
