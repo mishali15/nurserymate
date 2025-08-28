@@ -3,7 +3,7 @@
 # Features:
 #   - User authentication (admin)
 #   - Plant data management (add/remove, view, query)
-#   - Dynamic recommendations
+#   - Plant recommendations (through filtering)
 #   - PDF plant care summary generation
 # Data:
 #   - SQLite database 'plants.db'
@@ -15,8 +15,8 @@
 #       image_url TEXT, soil_type TEXT
 #     )
 # Structure:
-#   - Flask app with route functions (event-driven)
-#   - Helper functions for DB access/validation
+#   - Flask app with route functions
+#   - Functions for DB access/validation
 #   - Data structures: dict (records/form/session), list (collections), BytesIO (PDF)
 
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
@@ -30,11 +30,11 @@ import io
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Data type: str (used by Flask session signing)
 
-# --- Admin credentials (Data type: str) ---
+# Admin credentials (in a real app, use hashed passwords and secure storage), stored as plain strings here for simplicity
 valid_username = "admin"
 valid_password = "password123"
 
-# ------------------------------------------------------------
+
 # Function: get_all_plants
 # Purpose: Retrieve all plants from the database
 # Returns: list[dict] -> each dict is a plant record for easy template rendering
@@ -44,7 +44,8 @@ valid_password = "password123"
 # Data structures/types:
 #   - SQLite rows (tuple) → converted to dict
 #   - list (collection of plant dicts), dict (field -> value)
-# ------------------------------------------------------------
+
+
 def get_all_plants():
     conn = sqlite3.connect('plants.db')
     c = conn.cursor()
@@ -71,18 +72,18 @@ def get_all_plants():
         })
     return plant_list
 
-# ------------------------------------------------------------
+
 # Function: add_plant
 # Purpose: Validate and insert a new plant
 # Inputs: all fields as str; height validated as numeric (float) then stored with unit suffix
 # Returns: None
 # Control structures:
-#   - Selection: presence checks; numeric range validation; error handling via exceptions
+#   - Selection: existence checks; range checks; error handling via exceptions
 # Data types/structures:
 #   - float(height) for validation (range 0–100), then str with "m" appended for storage
-#   - SQLite parameterized INSERT (prevents injection)
-# Why height as TEXT: keeps display-friendly "Xm" while still validating numerically
-# ------------------------------------------------------------
+#   - SQLite parameterized INSERT (so values aren't concatenated directly into SQL, rather taken as inputs)
+
+
 def add_plant(scientific_name, common_name, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type_, planting_space, image_url, soil_type):
     # Selection: existence check for all fields
     if not all([scientific_name, common_name, flowering_time, height, ecological_function, sunlight, water_level, salt_wind_tolerance, type_, planting_space, image_url, soil_type]):
@@ -108,7 +109,7 @@ def add_plant(scientific_name, common_name, flowering_time, height, ecological_f
     conn.commit()
     conn.close()
 
-# ------------------------------------------------------------
+
 # Function: get_plant_by_id
 # Purpose: Fetch a plant by its integer ID
 # Returns: dict | None
@@ -116,9 +117,10 @@ def add_plant(scientific_name, common_name, flowering_time, height, ecological_f
 #   - Selection: validate plant_id; return None if invalid/not found
 # Data types/structures:
 #   - int (plant_id), tuple (row), dict (mapped record)
-# ------------------------------------------------------------
+
+
 def get_plant_by_id(plant_id):
-    # Selection: guard against invalid IDs
+    # Selection: prevents invalid IDs
     if not isinstance(plant_id, int) or plant_id <= 0:
         return None
     
@@ -146,14 +148,17 @@ def get_plant_by_id(plant_id):
         }
     return None
 
-# ------------------------------------------------------------
-# Function: remove_plant
+
+# Function: remove_plant    
 # Purpose: Delete a plant by ID
+# Inputs: plant_id (int)
+# Outputs: None
 # Control structures:
 #   - Sequence: connect → delete → commit → close
 # Data types:
 #   - int (plant_id)
-# ------------------------------------------------------------
+
+
 def remove_plant(plant_id):
     conn = sqlite3.connect('plants.db')
     c = conn.cursor()
@@ -161,10 +166,12 @@ def remove_plant(plant_id):
     conn.commit()
     conn.close()
 
-# ------------------------------------------------------------
+
 # Function: query_plants
 # Purpose: Filter plants according to user criteria
 # Returns: list[dict] with minimal fields (id, scientific_name, image_url)
+# Inputs: form_data (dict of optional criteria)
+# Outputs: list of dicts with keys 'id', 'scientific_name', 'image_url'
 # Control structures:
 #   - Sequence: fetch all → filter → return filtered
 #   - Iteration: over all plants; per-plant evaluation
@@ -174,7 +181,8 @@ def remove_plant(plant_id):
 #   - dict value_mappings (nested dict[str -> list[str]] for keyword matching)
 #   - list comprehension to produce filtered list
 #   - floats/ints not required here; strings compared case-insensitively
-# ------------------------------------------------------------
+
+
 def query_plants(form_data):
     conn = sqlite3.connect('plants.db')
     c = conn.cursor()
@@ -206,7 +214,7 @@ def query_plants(form_data):
             }
         }
 
-        # Selection blocks for each optional criterion; string normalization for robust matching
+        # Selection used for each optional criterion; case-insensitive substring or keyword matching
         if form_data.get("flowering_time"):
             total_criteria += 1
             if form_data["flowering_time"].lower() in flowering_time.lower():
@@ -228,7 +236,8 @@ def query_plants(form_data):
             form_water = form_data["water_level"].lower()
             plant_water = water_level.lower()
             if form_water in value_mappings["water_level"]:
-                for keyword in value_mappings["water_level"][form_water]:  # Iteration over synonyms
+                # Iteration over synonyms
+                for keyword in value_mappings["water_level"][form_water]:  
                     if keyword in plant_water:
                         match_count += 1
                         break
@@ -245,7 +254,8 @@ def query_plants(form_data):
             form_type = form_data["type"].lower()
             plant_type = type_.lower()
             if form_type in value_mappings["type"]:
-                for keyword in value_mappings["type"][form_type]:  # Iteration
+                # Iteration over synonyms
+                for keyword in value_mappings["type"][form_type]:  
                     if keyword in plant_type:
                         match_count += 1
                         break
@@ -265,7 +275,8 @@ def query_plants(form_data):
             if form_soil in plant_soil:
                 match_count += 1
 
-        # Selection: no criteria means match all; otherwise threshold-based match
+        # Selection: so that there are results for every filterng scenario
+        # Arithmetic operations: division, comparison
         if total_criteria == 0:
             return True
         return (match_count / total_criteria) >= 0.4
@@ -279,29 +290,32 @@ def query_plants(form_data):
     conn.close()
     return filtered_plants
 
-# ------------------------------------------------------------
+
 # Route: Home page
 # URL: "/"
 # Method(s): GET
 # Purpose: Serve the landing page
 # Control structures: straight sequence (render template)
-# Data structures: template context dict (empty here)
-# ------------------------------------------------------------
+
+
 @app.route("/")
 def home():
     return render_template("index.html")
 
-# ------------------------------------------------------------
+
 # Route: Plant selection form
 # URL: "/form"
 # Method(s): GET, POST
 # Purpose: Show form (GET); collect criteria and redirect to /results (POST)
+# Inputs: form fields (str)
+# Outputs: redirect to /results with query parameters
 # Control structures:
 #   - Selection: branch by request.method
-#   - Sequence: collect fields → redirect with query params
+#   - Sequence: collect fields → redirect with query parameters
 # Data structures:
 #   - dict form_data (criteria captured from form inputs)
-# ------------------------------------------------------------
+
+
 @app.route("/form", methods=["GET", "POST"])
 def form():
     if request.method == "POST":  # Selection: POST-handling branch
@@ -317,23 +331,26 @@ def form():
         return redirect(url_for("results", **form_data))  # Sequence: build URL with dict unpacking
     return render_template("form.html")
 
-# ------------------------------------------------------------
+
 # Route: Plant details
 # URL: "/plant/<int:plant_id>"
 # Method(s): GET
 # Purpose: Display full details for a single plant
+# Inputs: plant_id (int path parameter). User clicks link from results page
+# Outputs: render template with plant record (dict)
 # Control structures:
 #   - Sequence: fetch record → render template
 # Data types/structures:
 #   - int path parameter (plant_id)
 #   - dict plant record passed to template
-# ------------------------------------------------------------
+
+
 @app.route("/plant/<int:plant_id>")
 def plant_details(plant_id):
     plant = get_plant_by_id(plant_id)
     return render_template("plant_details.html", plant=plant)
 
-# ------------------------------------------------------------
+
 # Route: Results
 # URL: "/results"
 # Method(s): GET
@@ -342,7 +359,8 @@ def plant_details(plant_id):
 #   - Sequence: collect args → query → render
 # Data structures:
 #   - dict form_data; list[dict] plants
-# ------------------------------------------------------------
+
+
 @app.route("/results", methods=["GET"])
 def results():
     form_data = {
@@ -357,18 +375,21 @@ def results():
     plants = query_plants(form_data)
     return render_template("results_final.html", plants=plants)
 
-# ------------------------------------------------------------
+
 # Route: Login
 # URL: "/login"
 # Method(s): GET, POST
 # Purpose: Authenticate admin user
+# Inputs: username/password (str)
+# Outputs: set session flag; redirect to dashboard or show error
 # Control structures:
 #   - Selection: branch by method (GET vs POST)
 #   - Selection: credential check; set session flag; handle error
 # Data structures/types:
-#   - dict-like session for 'logged_in' flag (bool-like)
+#   - dict-like session for 'logged_in' flag (boolean)
 #   - str username/password from form
-# ------------------------------------------------------------
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -382,11 +403,13 @@ def login():
             return render_template("login.html", error=error)
     return render_template("login.html")
 
-# ------------------------------------------------------------
+
 # Route: Admin dashboard
 # URL: "/adminDashboard"
 # Method(s): GET, POST
 # Purpose: Manage plants (add/remove) and list all plants
+# Inputs: form fields for new plant (str); remove_id (int)
+# Outputs: render template with all plants; flash messages on actions
 # Control structures:
 #   - Selection: require login; redirect if not authenticated
 #   - Selection: POST vs GET
@@ -396,7 +419,8 @@ def login():
 #   - dict-like session; form fields (str)
 #   - file upload object (Werkzeug FileStorage) → saved as path str in DB
 #   - list[dict] plants for template
-# ------------------------------------------------------------
+
+
 @app.route("/adminDashboard", methods=["GET", "POST"])
 def adminDashboard():
     if not session.get('logged_in'):  # Selection: access control
@@ -404,14 +428,14 @@ def adminDashboard():
         return redirect(url_for('login'))
 
     if request.method == "POST":  # Selection: request method
-        if "remove_id" in request.form:  # Selection: removal branch
+        if "remove_id" in request.form:  
             plant_id = request.form.get("remove_id")
             if plant_id:
                 remove_plant(int(plant_id))
                 flash("Plant removed successfully.")
             else:
                 flash("No plant ID provided. Please select a plant to remove.")
-        elif "add_plant" in request.form:  # Selection: add branch
+        elif "add_plant" in request.form:  
             # Extract form inputs (Data types: str for all)
             scientific_name = request.form.get("scientific_name")
             common_name = request.form.get("common_name")
@@ -439,7 +463,7 @@ def adminDashboard():
 
             soil_type = request.form.get("soil_type")
 
-            # Selection: wrap add_plant in try/except to surface validation errors to UI
+            # Selection: validate and add plant; handle errors
             try:
                 add_plant(scientific_name, common_name, flowering_time, height, ecological_function,
                           sunlight, water_level, salt_wind_tolerance, type_, planting_space, image_url, soil_type)
@@ -450,26 +474,27 @@ def adminDashboard():
     plants = get_all_plants()  # list[dict]
     return render_template("dashboard.html", plants=plants)
 
-# ------------------------------------------------------------
+
 # Route: Logout
 # URL: "/logout"
 # Method(s): GET
 # Purpose: Clear session and redirect to login
 # Control structures:
 #   - Sequence: clear session → redirect
-# Data structures:
-#   - session (dict-like) mutated
-# ------------------------------------------------------------
+
+
 @app.route("/logout")
 def logout():
     session.pop('logged_in', None)
     return redirect(url_for('login'))
 
-# ------------------------------------------------------------
+
 # Route: Generate plant care summary (PDF)
 # URL: "/generate_summary/<int:plant_id>"
 # Method(s): POST
 # Purpose: Build a PDF in-memory and return as download
+# Inputs: User clicks button on plant details page
+# Outputs: PDF file (BytesIO) with plant care summary
 # Control structures:
 #   - Selection: validate ID; 404 if not found
 #   - Sequence: fetch → compose story → build PDF → return file
@@ -477,7 +502,8 @@ def logout():
 #   - BytesIO buffer (in-memory file)
 #   - tuple row from DB; accessed by index
 #   - reportlab Flowables: Paragraph, Spacer
-# ------------------------------------------------------------
+
+
 @app.route("/generate_summary/<int:plant_id>", methods=["POST"])
 def generate_summary(plant_id):
     if not isinstance(plant_id, int) or plant_id <= 0:  # Selection
@@ -513,7 +539,7 @@ def generate_summary(plant_id):
 
     return send_file(buffer, as_attachment=True, download_name=f"{plant[1]}_care_summary.pdf", mimetype="application/pdf")
 
-# ------------------------------------------------------------
+
 # Function: init_db
 # Purpose: Create plants table if it doesn't exist
 # Control structures:
@@ -521,7 +547,8 @@ def generate_summary(plant_id):
 # Data structures/types:
 #   - SQLite schema (TEXT columns for categorical/flexible text; height TEXT for unit-suffixed values)
 #   - INTEGER PRIMARY KEY AUTOINCREMENT for unique IDs
-# ------------------------------------------------------------
+
+
 def init_db():
     conn = sqlite3.connect('plants.db')
     c = conn.cursor()
@@ -545,11 +572,10 @@ def init_db():
     conn.commit()
     conn.close()
 
-# ------------------------------------------------------------
+
 # App entrypoint
-# Control structures:
-#   - Sequence: init DB → run app (debug mode)
-# ------------------------------------------------------------
+
+
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
